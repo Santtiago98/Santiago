@@ -1,0 +1,75 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+
+#define MAX_ARGUMENTS 4
+#define INPUT_FILE_CLA_POSITION 1
+#define OUTPUT_FILE_CLA_POSITION 2
+#define DELIMITADOR_CLA_POSITION 3
+
+typedef enum
+{
+    OK,
+    ERROR_NULL_POINTER,
+    ERROR_INPUT_FILE,
+    ERROR_MAKING_EXIT_FILE,
+    ERROR_CORRUPTED_DATA,
+    ERROR_DISK_SPACE,
+    ERROR_INVALID_NUMBER_OF_ARGUMENTS
+
+}status_t;
+
+typedef struct
+{
+    double real,imag;
+}complex_t;
+
+/*Lee un archivo tipo binario y lo convierte al destino que elijas (csv o txt)*/
+/*FALTA AGREGAR EL DELIMITADOR COMO POSIBLE PARAMETRO, POR DEFECTO ES ; */
+status_t bin_to_text_complex(FILE *f_input,char *output, char *argv)
+{
+    complex_t c;
+    FILE *fo;
+
+
+    if ((fo=fopen(output,"wt"))==NULL)
+    {
+        fprintf(stdout,"%s","No se pudo crear el archivo.");
+        fclose(f_input);
+        return ERROR_MAKING_EXIT_FILE;
+    }
+    while (fread(&c,sizeof(c),1,f_input))
+    {
+        fprintf(fo,"%f%c%f\r\r\n",c.real,';',c.imag);
+    }
+    fclose(f_input);
+    if (fclose(fo)==EOF) return ERROR_DISK_SPACE;
+
+    return OK;
+}
+status_t validate_arguments(int argc)
+{
+    if (argc>MAX_ARGUMENTS|| argc<MAX_ARGUMENTS-1)
+    {
+        puts("A");
+        return ERROR_INVALID_NUMBER_OF_ARGUMENTS;
+    }
+    return OK;
+}
+
+/*Parámetros de main: archivo origen, archivo destino, delimitador*/
+int main(int argc, char *argv[])
+{
+    status_t st;
+    FILE *fi;
+
+    if((fi=fopen(argv[INPUT_FILE_CLA_POSITION],"rb"))==NULL)
+    {
+        fprintf(stdout,"%s","No se pudo abrir el archivo.");
+        return ERROR_INPUT_FILE;
+    }
+    if((st=validate_arguments(argc))) return EXIT_FAILURE;
+    bin_to_text_complex(fi,argv[OUTPUT_FILE_CLA_POSITION],argv[DELIMITADOR_CLA_POSITION]);
+
+    return OK;
+}
