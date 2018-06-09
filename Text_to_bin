@@ -1,0 +1,115 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_INPUT 30
+#define MAX_ARGUMENTS 3
+#define MAX_ERRORS 7
+
+
+typedef enum
+{
+    OK,
+    ERROR_NULL_POINTER,
+    ERROR_INPUT_FILE,
+    ERROR_MAKING_EXIT_FILE,
+    ERROR_CORRUPTED_DATA,
+    ERROR_DISK_SPACE,
+    ERROR_INVALID_NUMBER_OF_ARGUMENTS
+
+}status_t;
+
+typedef struct
+{
+    double real,imag;
+}complex_t;
+
+/* $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+ * &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+ *
+ *             PROTOTIPOS
+
+
+Lee un archivo tipo texto y lo convierte en estructura (archivo tipo binario)
+ *Recibe dos archivos ya abiertos
+status_t text_to_binary_complex(FILE *, FILE *);
+
+
+* &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+* $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
+
+status_t text_to_binary_complex(FILE *fi, char *output_name)
+{
+    complex_t c;
+    char line[MAX_INPUT+2];
+    char *p;
+    char * temp;
+    FILE *fo;
+
+    if ((fo=fopen(output_name,"wb"))==NULL)
+    {
+        fprintf(stdout,"%s","No se pudo crear el archivo.");
+        fclose(fi);
+        return ERROR_MAKING_EXIT_FILE;
+    }
+    while(fgets(line,MAX_INPUT+2,fi)!=NULL)
+    {
+        if ((p = strchr(line, ';')) != NULL)
+        {
+            *p = '\0';
+        }
+        c.real = strtod(line, &temp);
+        if (*temp)
+        {
+            puts("ERROR 1");
+            fclose(fi);
+            fclose(fo);
+            remove(output_name);
+            return ERROR_CORRUPTED_DATA;
+        }
+        c.imag = strtod(p + 1, &temp);
+        puts(temp);
+        if (*temp!='\n' && *temp != '\r')
+        {
+            puts("ERROR 2");
+            fclose(fi);
+            fclose(fo);
+            remove(output_name);
+            return ERROR_CORRUPTED_DATA;
+        }
+        fwrite(&c, sizeof(c), 1, fo);
+    }
+    fclose(fi);
+    if (fclose(fo)==EOF)
+    {
+        return ERROR_DISK_SPACE;
+    }
+    return OK;
+}
+
+status_t validate_arguments(int argc)
+{
+    if (argc!=MAX_ARGUMENTS)
+    {
+        puts("Error con los argumentos.");
+        return ERROR_INVALID_NUMBER_OF_ARGUMENTS;
+    }
+    return OK;
+}
+
+int main(int argc, char * argv[])
+{
+    status_t st;
+    FILE *fi,*fo;
+
+    if ((st=validate_arguments(argc))) return EXIT_FAILURE;
+    if((fi=fopen(argv[1],"rt"))==NULL)
+    {
+        fprintf(stdout,"%s","No se pudo abrir el archivo.");
+        return ERROR_INPUT_FILE;
+    }
+
+    text_to_binary_complex(fi,argv[2]);
+
+    return OK;
+}
