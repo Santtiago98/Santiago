@@ -24,8 +24,19 @@ typedef struct
     double real,imag;
 }complex_t;
 
+/* $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+ * &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+ *
+ *             PROTOTIPOS
+ 
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+* $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
+
 /*Lee un archivo tipo binario y lo convierte al destino que elijas (csv o txt)*/
 /*FALTA AGREGAR EL DELIMITADOR COMO POSIBLE PARAMETRO, POR DEFECTO ES ; */
+status_t bin_to_text_complex(FILE *, char*, char *);
+
+
 status_t bin_to_text_complex(FILE *f_input,char *output, char *argv)
 {
     complex_t c;
